@@ -1,8 +1,10 @@
-﻿using AutoMapper;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using SneakerShop.Dto;
-using SneakerShop.Interface;
+using SneakerShop.Commands.CreateSize;
+using SneakerShop.Commands.DeleteSize;
+using SneakerShop.Commands.UpdateSize;
 using SneakerShop.Models;
+using SneakerShop.Queries.GetAllSizes;
 
 namespace SneakerShop.Controllers
 {
@@ -10,108 +12,49 @@ namespace SneakerShop.Controllers
     [ApiController]
     public class SizeController : Controller
     {
-        private readonly ISizeRepository _sizeRepository;
-        private readonly IMapper _mapper;
-        private readonly ISneakerRepository _sneakerRepository;
+        private readonly IMediator _mediator;
 
-        public SizeController(ISizeRepository sizeRepository, IMapper mapper,
-            ISneakerRepository sneakerRepository)
+        public SizeController(IMediator mediator)
         {
-            _sizeRepository = sizeRepository;
-            _mapper = mapper;
-            _sneakerRepository = sneakerRepository;
+            _mediator = mediator;
         }
 
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Size>))]
-        public IActionResult GetSizes()
+        public async Task<IActionResult> GetSizes()
         {
-            var sizes = _mapper.Map<List<SizeDto>>(_sizeRepository.GetSizes());
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            return Ok(sizes);
+            var query = new GetAllSizesQuery();
+            var result = await _mediator.Send(query);
+            return Ok(result);
         }
 
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
-        public IActionResult CreateSize([FromBody] SizeDto sizeCreate)
+        public async Task<IActionResult> CreateSize([FromBody] CreateSizeCommand command)
         {
-            if(sizeCreate == null)
-                return BadRequest(ModelState);
-
-            var sizes = _sizeRepository.GetSizes().Where(s => s.UsSize.Trim().ToUpper()
-                == sizeCreate.UsSize.TrimEnd().ToUpper()).FirstOrDefault();
-
-            if (sizes != null)
-            {
-                ModelState.AddModelError("", "Size already exists.");
-            }
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var sizeMap = _mapper.Map<Size>(sizeCreate);
-
-            if (!_sizeRepository.CreateSize(sizeMap))
-            {
-                ModelState.AddModelError("", "Something went wrong while saving.");
-                return StatusCode(500, ModelState);
-            }
-
-            return Ok("Sucessfully created.");
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
 
         [HttpPut("{sizeId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult UpdateSize(int sizeId, [FromBody] SizeDto updatedSize)
+        public async Task<IActionResult> UpdateSize([FromBody] UpdateSizeCommand command)
         {
-            if(updatedSize == null)
-                return BadRequest(ModelState);
-
-            if(sizeId != updatedSize.Id)
-                return BadRequest(ModelState);
-
-            if(!_sizeRepository.SizeExists(sizeId))
-                return NotFound();
-
-            var sizeMap = _mapper.Map<Size>(updatedSize);
-
-            if (!_sizeRepository.UpdateSize(sizeMap))
-            {
-                ModelState.AddModelError("", "Something went wrong while updating.");
-                return StatusCode(500, ModelState);
-            }
-
-            return Ok("Successfully updated.");
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
 
         [HttpDelete("{sizeId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult DeleteSize(int sizeId)
+        public async Task<IActionResult> DeleteSize(DeleteSizeCommand command)
         {
-            if (!_sizeRepository.SizeExists(sizeId))
-                return NotFound();
-
-            var deletedSize = _sizeRepository.GetSize(sizeId);
-            var deletedSneakerSizes = _sizeRepository.GetSneakerSizes(sizeId);
-
-            if(!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            if(!_sizeRepository.DeleteSize(deletedSize, deletedSneakerSizes))
-            {
-                ModelState.AddModelError("", "Something went wrong while deleting.");
-                return StatusCode(500, ModelState);
-            }
-
-            return Ok("Successfully deleted.");
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
     }
 }

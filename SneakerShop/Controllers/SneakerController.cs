@@ -1,9 +1,11 @@
-﻿using AutoMapper;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using SneakerShop.Dto;
-using SneakerShop.Interface;
+using SneakerShop.Commands.CreateSneaker;
+using SneakerShop.Commands.DeleteSneaker;
+using SneakerShop.Commands.UpdateSneaker;
 using SneakerShop.Models;
-using System.Diagnostics;
+using SneakerShop.Queries.GetAllSneakers;
+using SneakerShop.Queries.GetSneakerById;
 
 namespace SneakerShop.Controllers
 {
@@ -11,134 +13,60 @@ namespace SneakerShop.Controllers
     [ApiController]
     public class SneakerController : Controller
     {
-        private readonly ISneakerRepository _sneakerRepository; private readonly IMapper _mapper;
-        private readonly ISizeRepository _sizeRepository;
+        private readonly IMediator _mediator;
 
-        public SneakerController(ISneakerRepository sneakerRepository, IMapper mapper,
-            ISizeRepository sizeRepository)
+        public SneakerController(IMediator mediator)
         {
-            _sneakerRepository = sneakerRepository;
-            _mapper = mapper;
-            _sizeRepository = sizeRepository;
+            _mediator = mediator;
         }
 
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(IEnumerable<Sneaker>))]
-        public IActionResult GetSneakers()
+        public async Task<ActionResult> GetSneakers()
         {
-            var sneakers = _mapper.Map<List<SneakerDto>>(_sneakerRepository.GetSneakers());
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            return Ok(sneakers);
+            var query = new GetAllSneakersQuery();
+            var result = await _mediator.Send(query);
+            return Ok(result);
         }
 
         [HttpGet("{sneakerId}")]
         [ProducesResponseType(200, Type = typeof(Sneaker))]
         [ProducesResponseType(400)]
-        public IActionResult GetSneaker(int sneakerId)
+        public async Task<IActionResult> GetSneaker(int sneakerId)
         {
-            if (!_sneakerRepository.SneakerExists(sneakerId))
-                return NotFound();
-
-            var sneaker = _mapper.Map<SneakerDto>(_sneakerRepository.GetSneaker(sneakerId));
-            var sizes = _mapper.Map<List<SizeDto>>(_sizeRepository.GetSizesOfASneaker(sneakerId));
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            return Ok(new {sneaker, sizes});
+            var query = new GetSneakerByIdQuery(sneakerId);
+            var result = await _mediator.Send(query);
+            return result != null ? Ok(result) : NotFound();
         }
 
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult CreateSneaker([FromQuery] List<int> sizeIds, 
-            [FromBody] SneakerDto sneakerCreate)
+        public async Task<IActionResult> CreateSneaker([FromBody] CreateSneakerCommand command)
         {
-            bool isUnique = sizeIds.Distinct().Count() == sizeIds.Count();
-
-            if (!isUnique)
-                ModelState.AddModelError("", "You cannot enter one size ID more thn once.");
-
-            if (sneakerCreate == null)
-                return BadRequest(ModelState);
-
-            var sneakers = _sneakerRepository.GetSneakers().Where(s => s.Model.Trim().ToUpper()
-                == sneakerCreate.Model.TrimEnd().ToUpper()).FirstOrDefault();
-
-            if (sneakers != null)
-            {
-                ModelState.AddModelError("", "Sneaker already exists.");
-            }
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var sneakerMap = _mapper.Map<Sneaker>(sneakerCreate);
-
-            if (!_sneakerRepository.CreateSneaker(sneakerMap, sizeIds))
-            {
-                ModelState.AddModelError("", "Something went wrong while saving.");
-                return StatusCode(500, ModelState);
-            }
-
-            return Ok("Sucessfully created.");
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
 
         [HttpPut("{sneakerId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult UpdateSneaker(int sneakerId, [FromBody] SneakerDto updatedSneaker)
+        public async Task<IActionResult> UpdateSneaker([FromBody] UpdateSneakerCommand command)
         {
-            if(updatedSneaker == null)
-                return BadRequest(ModelState);
-
-            if(sneakerId != updatedSneaker.Id)
-                return BadRequest(ModelState);
-
-            if (!_sneakerRepository.SneakerExists(sneakerId))
-                return NotFound();
-
-            if(!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var sneakerMap = _mapper.Map<Sneaker>(updatedSneaker);
-
-            if(!_sneakerRepository.UpdateSneaker(sneakerMap))
-            {
-                ModelState.AddModelError("", "Something went wrong while updating.");
-                return StatusCode(500, ModelState);
-            }
-
-            return Ok("Successfully updated.");
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
 
         [HttpDelete("{sneakerId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult DeleteSneaker(int sneakerId)
+        public async Task<IActionResult> DeleteSneaker(DeleteSneakerCommand command)
         {
-            if (!_sneakerRepository.SneakerExists(sneakerId))
-                return NotFound();
-
-            var deletedSneaker = _sneakerRepository.GetSneaker(sneakerId);
-            var deletedSneakerSizes = _sneakerRepository.GetSneakerSizes(sneakerId);
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            if (!_sneakerRepository.DeleteSneaker(deletedSneaker, deletedSneakerSizes))
-            {
-                ModelState.AddModelError("", "Something went wrong while deleting.");
-                return StatusCode(500, ModelState);
-            }
-
-            return Ok("Successfully deleted.");
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
     }
 }

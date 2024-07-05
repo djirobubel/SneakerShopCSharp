@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SneakerShop.Data;
+﻿using SneakerShop.Data;
 using SneakerShop.Interface;
 using SneakerShop.Models;
 
@@ -28,7 +27,7 @@ namespace SneakerShop.Repository
 
                 _context.SneakerSizes.Add(sneakerSize);
             }
-            
+
             _context.Sneakers.Add(sneaker);
             return Save();
         }

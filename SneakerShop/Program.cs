@@ -11,6 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<ISneakerRepository, SneakerRepository>();
 builder.Services.AddScoped<ISizeRepository, SizeRepository>();
+builder.Services.AddMediatR(c => c.RegisterServicesFromAssemblyContaining<Program>());
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
