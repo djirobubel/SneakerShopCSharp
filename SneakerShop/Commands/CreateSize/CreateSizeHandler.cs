@@ -20,16 +20,10 @@ namespace SneakerShop.Commands.CreateSize
         public Task<CreateSizeResult> Handle(CreateSizeCommand request,
             CancellationToken cancellationToken)
         {
-            CreateSizeCommand size = new CreateSizeCommand
-            {
-                Id = request.Id,
-                UsSize = request.UsSize
-            };
-
             SizeDto sizeDto = new SizeDto
             {
-                Id = size.Id,
-                UsSize = size.UsSize,
+                Id = request.Id,
+                UsSize = request.UsSize,
             };
 
             var createdSize = _mapper.Map<Size>(sizeDto);

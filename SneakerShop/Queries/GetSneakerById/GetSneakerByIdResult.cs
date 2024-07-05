@@ -9,5 +9,6 @@ namespace SneakerShop.Queries.GetSneakerById
         public decimal Price { get; set; }
         public string Description { get; set; }
         public ICollection<SizeDto> Sizes { get; set; }
+        public bool Stock { get; set; }
     }
 }

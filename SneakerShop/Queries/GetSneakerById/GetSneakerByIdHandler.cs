@@ -22,6 +22,16 @@ namespace SneakerShop.Queries.GetSneakerById
         public Task<GetSneakerByIdResult> Handle(GetSneakerByIdQuery request,
             CancellationToken cancellationToken)
         {
+            if(!_sneakerRepository.SneakerExists(request.Id))
+            {
+                GetSneakerByIdResult outOfStock = new GetSneakerByIdResult
+                {
+                    Stock = false
+                };
+
+                return Task.FromResult(outOfStock);
+            }
+
             var sneaker = _sneakerRepository.GetSneaker(request.Id);
             var sizes = _sizeRepository.GetSizesOfASneaker(request.Id);
             var sizesMap = _mapper.Map<List<SizeDto>>(sizes);
@@ -32,7 +42,8 @@ namespace SneakerShop.Queries.GetSneakerById
                 Model = sneaker.Model,
                 Price = sneaker.Price,
                 Description = sneaker.Description,
-                Sizes = sizesMap
+                Sizes = sizesMap,
+                Stock = true
             };
 
             return Task.FromResult(result);

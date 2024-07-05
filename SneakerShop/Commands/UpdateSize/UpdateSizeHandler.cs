@@ -20,16 +20,10 @@ namespace SneakerShop.Commands.UpdateSize
         public Task<UpdateSizeResult> Handle(UpdateSizeCommand request,
             CancellationToken cancellationToken)
         {
-            UpdateSizeCommand sizeCommand = new UpdateSizeCommand
-            {
-                UpdatedSizeId = request.UpdatedSizeId,
-                UsSize = request.UsSize
-            };
-
             SizeDto size = new SizeDto
             {
-                Id = sizeCommand.UpdatedSizeId,
-                UsSize = sizeCommand.UsSize
+                Id = request.UpdatedSizeId,
+                UsSize = request.UsSize
             };
 
             var updatedSize = _mapper.Map<Size>(size);
@@ -38,7 +32,6 @@ namespace SneakerShop.Commands.UpdateSize
             UpdateSizeResult result = new UpdateSizeResult { Message = "Successfully updated." };
 
             return Task.FromResult(result);
-
         }
     }
 }

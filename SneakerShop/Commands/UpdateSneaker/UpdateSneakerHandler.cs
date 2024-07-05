@@ -20,20 +20,12 @@ namespace SneakerShop.Commands.UpdateSneaker
         public Task<UpdateSneakerResult> Handle(UpdateSneakerCommand request,
             CancellationToken cancellationToken)
         {
-            UpdateSneakerCommand sneakerCommand = new UpdateSneakerCommand
+            SneakerDto sneaker = new SneakerDto
             {
-                UpdatedSneakerId = request.UpdatedSneakerId,
+                Id = request.UpdatedSneakerId,
                 Model = request.Model,
                 Price = request.Price,
                 Description = request.Description
-            };
-
-            SneakerDto sneaker = new SneakerDto
-            {
-                Id = sneakerCommand.UpdatedSneakerId,
-                Model = sneakerCommand.Model,
-                Price = sneakerCommand.Price,
-                Description = sneakerCommand.Description
             };
 
             var updatedSneaker = _mapper.Map<Sneaker>(sneaker);

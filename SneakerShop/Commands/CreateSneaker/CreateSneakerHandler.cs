@@ -19,24 +19,15 @@ namespace SneakerShop.Commands.CreateSneaker
         public Task<CreateSneakerResult> Handle(CreateSneakerCommand request,
             CancellationToken cancellationToken)
         {
-            CreateSneakerCommand sneakerCommand = new CreateSneakerCommand
+            SneakerDto sneaker = new SneakerDto
             {
                 Id = request.Id,
                 Model = request.Model,
                 Price = request.Price,
-                Description = request.Description,
-                SizeIds = request.SizeIds
+                Description = request.Description
             };
 
-            SneakerDto sneaker = new SneakerDto
-            {
-                Id = sneakerCommand.Id,
-                Model = sneakerCommand.Model,
-                Price = sneakerCommand.Price,
-                Description = sneakerCommand.Description
-            };
-
-            var sizes = sneakerCommand.SizeIds;
+            var sizes = request.SizeIds;
 
             var createdSneaker = _mapper.Map<Sneaker>(sneaker);
             _sneakerRepository.CreateSneaker(createdSneaker, sizes);

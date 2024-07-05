@@ -36,7 +36,7 @@ namespace SneakerShop.Controllers
         {
             var query = new GetSneakerByIdQuery(sneakerId);
             var result = await _mediator.Send(query);
-            return result != null ? Ok(result) : NotFound();
+            return result.Stock == true ? Ok(result) : NotFound(); 
         }
 
         [HttpPost]
