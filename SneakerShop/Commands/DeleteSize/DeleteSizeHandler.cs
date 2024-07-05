@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using MediatR;
+﻿using MediatR;
 using SneakerShop.Interface;
 
 namespace SneakerShop.Commands.DeleteSize
@@ -7,12 +6,10 @@ namespace SneakerShop.Commands.DeleteSize
     public class DeleteSizeHandler : IRequestHandler<DeleteSizeCommand, DeleteSizeResult>
     {
         private readonly ISizeRepository _sizeRepository;
-        private readonly IMapper _mapper;
 
-        public DeleteSizeHandler(ISizeRepository sizeRepository, IMapper mapper)
+        public DeleteSizeHandler(ISizeRepository sizeRepository)
         {
             _sizeRepository = sizeRepository;
-            _mapper = mapper;
         }
 
         public Task<DeleteSizeResult> Handle(DeleteSizeCommand request,

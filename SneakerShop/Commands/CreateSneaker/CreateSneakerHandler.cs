@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using MediatR;
-using SneakerShop.Dto;
+﻿using MediatR;
 using SneakerShop.Interface;
 using SneakerShop.Models;
 
@@ -9,17 +7,15 @@ namespace SneakerShop.Commands.CreateSneaker
     public class CreateSneakerHandler : IRequestHandler<CreateSneakerCommand, CreateSneakerResult>
     {
         private readonly ISneakerRepository _sneakerRepository;
-        private readonly IMapper _mapper;
 
-        public CreateSneakerHandler(ISneakerRepository sneakerRepository, IMapper mapper)
+        public CreateSneakerHandler(ISneakerRepository sneakerRepository)
         {
             _sneakerRepository = sneakerRepository;
-            _mapper = mapper;
         }
         public Task<CreateSneakerResult> Handle(CreateSneakerCommand request,
             CancellationToken cancellationToken)
         {
-            SneakerDto sneaker = new SneakerDto
+            Sneaker createdSneaker = new Sneaker
             {
                 Id = request.Id,
                 Model = request.Model,
@@ -29,7 +25,6 @@ namespace SneakerShop.Commands.CreateSneaker
 
             var sizes = request.SizeIds;
 
-            var createdSneaker = _mapper.Map<Sneaker>(sneaker);
             _sneakerRepository.CreateSneaker(createdSneaker, sizes);
 
             CreateSneakerResult result = new CreateSneakerResult
